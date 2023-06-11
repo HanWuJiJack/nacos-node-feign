@@ -8,7 +8,10 @@ axios.interceptors.request.use(
   },
   (error) => {
     // 对请求错误做些什么
-    return Promise.reject(error);
+    return Promise.reject({
+      code: 40001,
+      message: error.message,
+    });
   }
 );
 
@@ -22,19 +25,29 @@ axios.interceptors.response.use(
   (error) => {
     // 超出 2xx 范围的状态码都会触发该函数。
     // 对响应错误做点什么
+    // console.log("error.message=>", error.message);
     if (error.message.includes("timeout")) {
       // 判断请求异常信息中是否含有超时timeout字符串
       // console.log("错误回调", error);
-      return Promise.reject("timeout");
+      return Promise.reject({
+        code: 50001,
+        message: "请求超时",
+      });
       // alert("网络超时");
     }
     if (error.message.includes("ECONNREFUSED")) {
       // 判断请求异常信息中是否含有超时timeout字符串
       // console.log("ECONNREFUSED88888");
-      return Promise.reject("ECONNREFUSED");
+      return Promise.reject({
+        code: 50002,
+        message: "拒绝连接",
+      });
       // alert("网络超时");
     }
-    return Promise.reject(error);
+    return Promise.reject({
+      code: 50003,
+      message: error.message,
+    });
   }
 );
 
@@ -58,7 +71,7 @@ module.exports = ({
       })
       .then(
         (res) => {
-          resolve(res);
+          resolve(res.data);
         },
         (err) => {
           reject(err);

@@ -1,4 +1,8 @@
+const { resolve } = require("path");
 const request = require("./utils/request");
+const threadsPools = require("./threadsPools");
+
+const TPools = new threadsPools(resolve(__dirname, "./seprateThread.js"));
 
 class feign {
   serverList;
@@ -13,10 +17,6 @@ class feign {
 
   // 参数缓存
   runData;
-  // 接管resolve
-  requestResolve;
-  // 接管reject
-  requestReject;
   constructor({ serverList, namespace, groupName, serviceName }) {
     this.groupName = groupName;
     this.serverList = serverList;
@@ -26,12 +26,20 @@ class feign {
     this.acceptRequireSum = 0;
     this.weightSum = 0;
     this.runData = null;
-    this.requestResolve = null;
-    this.requestReject = null;
   }
   async getMicroServerList() {
     try {
-      const res = await request({
+      // const res = await request({
+      //   baseURL: this.serverList,
+      //   url: "/nacos/v1/ns/instance/list",
+      //   params: {
+      //     serviceName: this.serviceName,
+      //     namespaceId: this.namespaceId,
+      //     groupName: this.groupName,
+      //     healthyOnly: true,
+      //   },
+      // });
+      const data = await TPools.run({
         baseURL: this.serverList,
         url: "/nacos/v1/ns/instance/list",
         params: {
@@ -41,14 +49,14 @@ class feign {
           healthyOnly: true,
         },
       });
-    //   console.log("getMicroServerList=>", res.data);
+      // console.log("getMicroServerList=>", data);
       if (
         this.MicroServerList.length > 0 &&
-        res.data.hosts &&
-        res.data.hosts.length > 0
+        data.hosts &&
+        data.hosts.length > 0
       ) {
         // 保护之前已存在的值
-        res.data.hosts.forEach((item) => {
+        data.hosts.forEach((item) => {
           for (const key in this.MicroServerList) {
             if (
               Object.prototype.hasOwnProperty.call(this.MicroServerList, key)
@@ -61,15 +69,16 @@ class feign {
           }
           return item;
         });
-        // this.MicroServerList = res.data.hosts.filter((item) => !!item.weight);
-        this.MicroServerList = res.data.hosts
+        // this.MicroServerList = data.hosts.filter((item) => !!item.weight);
+        this.MicroServerList = data.hosts;
         // console.error("保护MicroServerList数据", this.MicroServerList);
       } else {
         // console.log("55555555")
-        this.MicroServerList = res.data.hosts || [];
+        this.MicroServerList = data.hosts || [];
       }
     } catch (error) {
-      console.error("获取微服务列表失败，请检测你的nacos！", error);
+      // console.error("获取微服务列表失败，请检测你的nacos！", error);
+      throw new Error("获取微服务列表失败，请检测你的nacos！");
     }
   }
   // 负载均衡算法
@@ -104,42 +113,40 @@ class feign {
         }
       }
     }
-    this.MicroServerList[maxIndex].requestNum =
-      this.MicroServerList[maxIndex].requestNum + 1;
-    this.acceptRequireSum = this.acceptRequireSum + 1;
-    // console.log(maxIndex, maxNum);
-    // console.log("this.acceptRequireSum", this.acceptRequireSum);
-    // console.log("this.MicroServerList", this.MicroServerList);
+    this.MicroServerList[maxIndex].requestNum += 1;
+    this.acceptRequireSum += 1;
     return { ...this.MicroServerList[maxIndex] };
   }
 
   async init() {
     await this.getMicroServerList();
+    if (this.MicroServerList.length === 0) {
+      throw new Error("请先注册微服务到nacos");
+    }
     this.weightSum = this.MicroServerList.map((item) => item.weight).reduce(
       (prev, curr) => {
         return prev + curr;
       }
     );
-    // console.log("this.weightSum", this.weightSum);
-  }
-  async request({ url, params, data, method, timeout }) {
-    this.runData = { url, params, data, method, timeout };
-    return new Promise((resolve, reject) => {
-      this.requestResolve = resolve;
-      this.requestReject = reject;
-      this.run(this.runData).then(
-        (res) => {
-          resolve(res);
-        },
-        (err) => {
-          reject(err);
-        }
-      );
-    });
   }
   async closeMircoServer({ ip, port }) {
     // console.log(ip, port);
-    const closeData = await request({
+    // const closeData = await request({
+    //   baseURL: this.serverList,
+    //   url: "/nacos/v1/ns/instance",
+    //   method: "post",
+    //   params: {
+    //     serviceName: this.serviceName,
+    //     namespaceId: this.namespaceId,
+    //     groupName: this.groupName,
+    //     ip,
+    //     port,
+    //     healthy: false,
+    //     enabled: false,
+    //     weight: 0,
+    //   },
+    // });
+    await TPools.run({
       baseURL: this.serverList,
       url: "/nacos/v1/ns/instance",
       method: "post",
@@ -159,69 +166,44 @@ class feign {
     return this.run(this.runData);
   }
   run({ url, params, data, method, timeout }) {
+    this.runData = { url, params, data, method, timeout };
     const curMircoServer = this.LoadBalance();
     // console.log("curMircoServer", curMircoServer);
-    return new Promise((resolve, reject) => {
-      request({
+    return new Promise((resolve) => {
+      TPools.run({
         baseURL: `http://${curMircoServer.ip}:${curMircoServer.port}`,
         url,
         params,
         data,
         method,
         timeout,
-      }).then(
-        (res) => {
+      }).then((res) => {
+        console.log("res", res);
+        if (res.code && res.code === 50002) {
+          this.closeMircoServer(curMircoServer).then((res) => {
+            resolve(res);
+          });
+        } else {
           resolve(res);
-        },
-        (err) => {
-          //   console.log("err", err);
-          if (err === "timeout") {
-            this.init().then(
-              () => {
-                this.run(this.runData);
-              },
-              (error) => {
-                reject(error);
-              }
-            );
-          } else if (err === "ECONNREFUSED") {
-            this.closeMircoServer(curMircoServer).then(
-              (res) => {
-                resolve(res);
-              },
-              (error) => {
-                reject(error);
-              }
-            );
-          } else {
-            reject(err);
-          }
         }
-      );
+      });
     });
   }
 }
-const run = async ({ serverList, namespace, groupName, serviceName }) => {
-  // const feign_: any = new feign({ serverList: "http://127.0.0.1:8848", serviceName: "ADONIS_NODE_" })
-  const feign_ = new feign({
-    serverList,
-    namespace,
-    groupName,
-    serviceName,
-  });
-  await feign_.init();
-//   for (let i = 0; i < 5; i++) {
-//     feign_.request({ url: "/api/posts" }).then(
-//       (res) => {
-//         console.log(`序列${i}：`, res.data);
-//       },
-//       (err) => {
-//         console.log(`err序列${i}：`, err);
-//       }
-//     );
-//   }
-  return feign_;
-};
 
-// run({ serverList: "http://127.0.0.1:8848", serviceName: "ADONIS_NODE_" });
-module.exports = run;
+const asyncGetFeign = ({ serverList, namespace, groupName, serviceName }) => {
+  return new Promise((resolve, reject) => {
+    const feign_ = new feign({
+      serverList,
+      namespace,
+      groupName,
+      serviceName,
+    });
+    feign_.init().then(() => {
+      resolve(feign_);
+    });
+  });
+};
+module.exports = {
+  asyncGetFeign,
+};
