@@ -114,16 +114,18 @@ class feign {
           if (err) {
             throw new Error("获取微服务列表失败，请检测你的nacos！");
           }
-          // console.log("多线程获取res.hosts8888列表=>", res.hosts);
-          this.MicroServerList = res.hosts || [];
-          if (this.MicroServerList.length === 0) {
-            throw new Error("请先注册微服务到nacos");
+          console.log("多线程获取res.hosts8888列表=>", res.hosts.length);
+          if (this.MicroServerList.length !== res.hosts.length) {
+            this.MicroServerList = res.hosts || [];
+            if (this.MicroServerList.length === 0) {
+              throw new Error("请先注册微服务到nacos");
+            }
+            this.weightSum = this.MicroServerList.map(
+              (item) => item.weight
+            ).reduce((prev, curr) => {
+              return prev + curr;
+            });
           }
-          this.weightSum = this.MicroServerList.map(
-            (item) => item.weight
-          ).reduce((prev, curr) => {
-            return prev + curr;
-          });
         }
       );
     }, this.refreshTime);

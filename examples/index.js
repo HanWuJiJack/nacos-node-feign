@@ -11,6 +11,7 @@ const proxy = async () => {
     url: "/api/posts",
     // timeout: 5000,
   });
+  console.log("data", data);
 };
 
 const init = async () => {
@@ -22,7 +23,7 @@ const init = async () => {
   const before = Date.now();
   console.log(before); // 1505722233092
   // 需要转发的代码
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < 8; i++) {
     await proxy();
   }
   console.log(Date.now() - before); // 81736ms
@@ -50,7 +51,10 @@ const testThread = () => {
 const testAsync = async () => {
   const before = Date.now();
   for (let i = 0; i < 10000; i++) {
-    const res = await request({ baseURL: "http://127.0.0.1:4003", url: "/api/posts" });
+    const res = await request({
+      baseURL: "http://127.0.0.1:4003",
+      url: "/api/posts",
+    });
     console.log(Date.now() - before);
     // console.log(res);
   }
