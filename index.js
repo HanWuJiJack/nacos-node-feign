@@ -43,7 +43,14 @@ class feign {
           healthyOnly: true,
         },
       });
-      this.MicroServerList = data.hosts || [];
+      if (data.hosts.length > this.MicroServerList.length) {
+        this.MicroServerList = data.hosts || [];
+        this.weightSum = this.MicroServerList.map((item) => item.weight).reduce(
+          (prev, curr) => {
+            return prev + curr;
+          }
+        );
+      }
     } catch (error) {
       // console.error("获取微服务列表失败，请检测你的nacos！", error);
       throw new Error("获取微服务列表失败，请检测你的nacos！");
@@ -58,13 +65,14 @@ class feign {
         let item = this.MicroServerList[index];
         // 获取权重概率
         item.weightPercentage = ~~((item.weight * 100) / this.weightSum);
+
+        if (!item.requestNum) item.requestNum = 0;
         // 计算将要运行微服务的概率
         if (this.acceptRequireSum === 0) {
           item.willRequirePercentage = ~~(
             (this.weightSum * 100) /
             item.weightPercentage
           );
-          item.requestNum = 0;
         } else {
           item.willRequirePercentage = ~~(
             (item.requestNum * this.weightSum * 100) /
@@ -91,43 +99,39 @@ class feign {
     if (this.MicroServerList.length === 0) {
       throw new Error("请先注册微服务到nacos");
     }
-    this.weightSum = this.MicroServerList.map((item) => item.weight).reduce(
-      (prev, curr) => {
-        return prev + curr;
-      }
-    );
     // 通过开启一个线程去独立 每个15秒刷新一次配置
     setTimeout(() => {
-      TLong.run(
-        {
-          baseURL: this.serverList,
-          url: "/nacos/v1/ns/instance/list",
-          params: {
-            serviceName: this.serviceName,
-            namespaceId: this.namespaceId,
-            groupName: this.groupName,
-            healthyOnly: true,
-          },
-          refreshTime: this.refreshTime,
-        },
-        (err, res) => {
-          if (err) {
-            throw new Error("获取微服务列表失败，请检测你的nacos！");
-          }
-          console.log("多线程获取res.hosts8888列表=>", res.hosts.length);
-          if (this.MicroServerList.length !== res.hosts.length) {
-            this.MicroServerList = res.hosts || [];
-            if (this.MicroServerList.length === 0) {
-              throw new Error("请先注册微服务到nacos");
-            }
-            this.weightSum = this.MicroServerList.map(
-              (item) => item.weight
-            ).reduce((prev, curr) => {
-              return prev + curr;
-            });
-          }
-        }
-      );
+      this.init();
+      // TLong.run(
+      //   {
+      //     baseURL: this.serverList,
+      //     url: "/nacos/v1/ns/instance/list",
+      //     params: {
+      //       serviceName: this.serviceName,
+      //       namespaceId: this.namespaceId,
+      //       groupName: this.groupName,
+      //       healthyOnly: true,
+      //     },
+      //     refreshTime: this.refreshTime,
+      //   },
+      //   (err, res) => {
+      //     if (err) {
+      //       throw new Error("获取微服务列表失败，请检测你的nacos！");
+      //     }
+      //     console.log("多线程获取res.hosts8888列表=>", res.hosts.length);
+      //     if (this.MicroServerList.length !== res.hosts.length) {
+      //       this.MicroServerList = res.hosts || [];
+      //       if (this.MicroServerList.length === 0) {
+      //         throw new Error("请先注册微服务到nacos");
+      //       }
+      //       this.weightSum = this.MicroServerList.map(
+      //         (item) => item.weight
+      //       ).reduce((prev, curr) => {
+      //         return prev + curr;
+      //       });
+      //     }
+      //   }
+      // );
     }, this.refreshTime);
   }
 
