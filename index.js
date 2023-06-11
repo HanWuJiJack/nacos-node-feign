@@ -1,8 +1,11 @@
 const { resolve } = require("path");
 const request = require("./utils/request");
-const threadsPools = require("./threadsPools");
-
-const TPools = new threadsPools(resolve(__dirname, "./seprateThread.js"));
+// const threadsPools = require("./threadsPools");
+const threadsLong = require("./threadsLong");
+// const TPools = new threadsPools(resolve(__dirname, "./seprateThread.js"));
+const TLong = new threadsLong(
+  resolve(__dirname, "./threadGetMicroServerList.js")
+);
 
 class feign {
   serverList;
@@ -26,20 +29,11 @@ class feign {
     this.acceptRequireSum = 0;
     this.weightSum = 0;
     this.runData = null;
+    this.refreshTime = 15000;
   }
   async getMicroServerList() {
     try {
-      // const res = await request({
-      //   baseURL: this.serverList,
-      //   url: "/nacos/v1/ns/instance/list",
-      //   params: {
-      //     serviceName: this.serviceName,
-      //     namespaceId: this.namespaceId,
-      //     groupName: this.groupName,
-      //     healthyOnly: true,
-      //   },
-      // });
-      const data = await TPools.run({
+      const data = await request({
         baseURL: this.serverList,
         url: "/nacos/v1/ns/instance/list",
         params: {
@@ -49,33 +43,7 @@ class feign {
           healthyOnly: true,
         },
       });
-      // console.log("getMicroServerList=>", data);
-      if (
-        this.MicroServerList.length > 0 &&
-        data.hosts &&
-        data.hosts.length > 0
-      ) {
-        // 保护之前已存在的值
-        data.hosts.forEach((item) => {
-          for (const key in this.MicroServerList) {
-            if (
-              Object.prototype.hasOwnProperty.call(this.MicroServerList, key)
-            ) {
-              const element = this.MicroServerList[key];
-              if (element.instanceId === item.instanceId) {
-                item = { ...item, ...element };
-              }
-            }
-          }
-          return item;
-        });
-        // this.MicroServerList = data.hosts.filter((item) => !!item.weight);
-        this.MicroServerList = data.hosts;
-        // console.error("保护MicroServerList数据", this.MicroServerList);
-      } else {
-        // console.log("55555555")
-        this.MicroServerList = data.hosts || [];
-      }
+      this.MicroServerList = data.hosts || [];
     } catch (error) {
       // console.error("获取微服务列表失败，请检测你的nacos！", error);
       throw new Error("获取微服务列表失败，请检测你的nacos！");
@@ -128,41 +96,43 @@ class feign {
         return prev + curr;
       }
     );
+    // 通过开启一个线程去独立 每个15秒刷新一次配置
+    setTimeout(() => {
+      TLong.run(
+        {
+          baseURL: this.serverList,
+          url: "/nacos/v1/ns/instance/list",
+          params: {
+            serviceName: this.serviceName,
+            namespaceId: this.namespaceId,
+            groupName: this.groupName,
+            healthyOnly: true,
+          },
+          refreshTime: this.refreshTime,
+        },
+        (err, res) => {
+          if (err) {
+            throw new Error("获取微服务列表失败，请检测你的nacos！");
+          }
+          // console.log("多线程获取res.hosts8888列表=>", res.hosts);
+          this.MicroServerList = res.hosts || [];
+          if (this.MicroServerList.length === 0) {
+            throw new Error("请先注册微服务到nacos");
+          }
+          this.weightSum = this.MicroServerList.map(
+            (item) => item.weight
+          ).reduce((prev, curr) => {
+            return prev + curr;
+          });
+        }
+      );
+    }, this.refreshTime);
   }
+
   async closeMircoServer({ ip, port }) {
-    // console.log(ip, port);
-    // const closeData = await request({
-    //   baseURL: this.serverList,
-    //   url: "/nacos/v1/ns/instance",
-    //   method: "post",
-    //   params: {
-    //     serviceName: this.serviceName,
-    //     namespaceId: this.namespaceId,
-    //     groupName: this.groupName,
-    //     ip,
-    //     port,
-    //     healthy: false,
-    //     enabled: false,
-    //     weight: 0,
-    //   },
-    // });
-    await TPools.run({
-      baseURL: this.serverList,
-      url: "/nacos/v1/ns/instance",
-      method: "post",
-      params: {
-        serviceName: this.serviceName,
-        namespaceId: this.namespaceId,
-        groupName: this.groupName,
-        ip,
-        port,
-        healthy: false,
-        enabled: false,
-        weight: 0,
-      },
+    this.MicroServerList = this.MicroServerList.filter((item) => {
+      return item.ip != ip || item.port != port;
     });
-    // console.log(closeData.data);
-    await this.init();
     return this.run(this.runData);
   }
   run({ url, params, data, method, timeout }) {
@@ -170,23 +140,29 @@ class feign {
     const curMircoServer = this.LoadBalance();
     // console.log("curMircoServer", curMircoServer);
     return new Promise((resolve) => {
-      TPools.run({
+      request({
         baseURL: `http://${curMircoServer.ip}:${curMircoServer.port}`,
         url,
         params,
         data,
         method,
         timeout,
-      }).then((res) => {
-        console.log("res", res);
-        if (res.code && res.code === 50002) {
-          this.closeMircoServer(curMircoServer).then((res) => {
-            resolve(res);
-          });
-        } else {
+      }).then(
+        (res) => {
+          // console.log("res1", res);
           resolve(res);
+        },
+        (err) => {
+          // console.log("err1", err);
+          if (err.code && err.code === 50002) {
+            this.closeMircoServer(curMircoServer).then((res) => {
+              resolve(res);
+            });
+          } else {
+            resolve(err);
+          }
         }
-      });
+      );
     });
   }
 }

@@ -66,29 +66,31 @@ module.exports = class WorkerPool {
     // 将数据传给 Worker 供其获取和执行
     worker.postMessage(taskObj.data);
   }
-  run(data, callBack) {
-    // 调用 getInactiveWorkerId() 获取一个空闲的 Worker
-    const availableWorkerId = this.getInactiveWorkerId();
+  run(data) {
+    // Promise 是个好东西
+    return new Promise((resolve, reject) => {
+      // 调用 getInactiveWorkerId() 获取一个空闲的 Worker
+      const availableWorkerId = this.getInactiveWorkerId();
 
-    const taskObj = {
-      data,
-      // cb: (error, result) => {
-      //   // 虽然 Workers 需要使用 Listener 和 Callback，但这不能阻止我们使用 Promise，对吧？
-      //   // 不，你不能 util.promisify(taskObj) 。人不能，至少不应该。
-      //   if (error) reject(error);
-      //   return resolve(result);
-      // },
-      cb: callBack,
-    };
+      const taskObj = {
+        data,
+        cb: (error, result) => {
+          // 虽然 Workers 需要使用 Listener 和 Callback，但这不能阻止我们使用 Promise，对吧？
+          // 不，你不能 util.promisify(taskObj) 。人不能，至少不应该。
+          if (error) reject(error);
+          return resolve(result);
+        },
+      };
 
-    if (availableWorkerId === -1) {
-      // 当前没有空闲的 Workers 了，把任务丢进队列里，这样一旦有 Workers 空闲时就会开始执行。
-      this._queue.push(taskObj);
-      return null;
-    }
+      if (availableWorkerId === -1) {
+        // 当前没有空闲的 Workers 了，把任务丢进队列里，这样一旦有 Workers 空闲时就会开始执行。
+        this._queue.push(taskObj);
+        return null;
+      }
 
-    // 有一个空闲的 Worker，用它执行任务
-    this.runWorker(availableWorkerId, taskObj);
+      // 有一个空闲的 Worker，用它执行任务
+      this.runWorker(availableWorkerId, taskObj);
+    });
   }
   destroy(force = false) {
     for (let i = 0; i < this.numberOfThreads; i++) {

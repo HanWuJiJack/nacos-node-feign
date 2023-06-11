@@ -26,12 +26,13 @@ const proxy = async () => {
 };
 ```
 
-run函数支持参数run({ url, params, data, method, timeout })
---url:具体路径
---params:query参数
---data:payload参数
---method:请求方法 默认为get方法
---timeout:超时时间 默认为5000毫秒
+>run函数支持参数run({ url, params, data, method, timeout })  
+
+>--url:具体路径  
+>--params:query参数  
+>--data:payload参数  
+>--method:请求方法 默认为get方法  
+>--timeout:超时时间 默认为5000毫秒  
 
 
 
