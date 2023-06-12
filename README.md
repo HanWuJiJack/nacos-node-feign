@@ -4,6 +4,18 @@
 ```
 npm i nacos-node-feign
 ```
+### 引入包-ts
+```
+import asyncGetFeignDefault from "nacos-node-feign";
+const { asyncGetFeign } = asyncGetFeignDefault
+```
+
+### 引入包-js
+```
+const asyncGetFeignDefault = require("nacos-node-feign");
+const { asyncGetFeign } = asyncGetFeignDefault.default
+```
+
 
 ### 将代理注册到中心
 ```
