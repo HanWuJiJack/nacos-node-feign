@@ -67,7 +67,8 @@ const proxy = async () => {
 
 <!-- ts打包成js:npx tsc ./lib/index.ts -->
 
-<!-- npx ts-node ./examples/index.ts -->
+<!-- npx ts-node ./examples/examples-ts -->
+<!-- node ./examples/examples-js -->
 
 <!-- 注册：npm login -->
 <!-- 登录：npm adduser -->

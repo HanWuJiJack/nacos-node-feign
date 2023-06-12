@@ -1,6 +1,6 @@
 {
   "name": "nacos-node-feign",
-  "version": "1.1.31",
+  "version": "1.1.33",
   "description": "本包核心是通过计算微服务权重去动态选择服务进而转发服务！",
   "main": "index.js",
   "scripts": {

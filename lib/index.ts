@@ -5,18 +5,18 @@ const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
 
 class feign {
-  serverList;
-  namespaceId;
-  groupName;
-  MicroServerList: any[];
-  serviceName;
+  private serverList;
+  private namespaceId;
+  private groupName;
+  private MicroServerList: any[];
+  private serviceName;
   // 总共接受请求数目
-  acceptRequireSum;
+  private acceptRequireSum;
   // 权重和
-  weightSum;
+  private weightSum;
   // 参数缓存
-  runData: any;
-  refreshTime;
+  private runData: any;
+  private refreshTime;
   constructor({ serverList, namespace, groupName, serviceName }: InstanceFeignType) {
     this.groupName = groupName;
     this.serverList = serverList;
@@ -29,7 +29,7 @@ class feign {
     this.refreshTime = 15000;
   }
   // 负载均衡算法
-  LoadBalance() {
+  private LoadBalance() {
     let maxIndex = 0;
     let maxNum = 0;
     for (const index in this.MicroServerList) {
@@ -99,7 +99,7 @@ class feign {
       this.threadsinit();
     }, this.refreshTime);
   }
-  threadsinit() {
+  private threadsinit() {
     TPools.run(
       {
         baseURL: this.serverList,
@@ -112,7 +112,7 @@ class feign {
         },
         refreshTime: this.refreshTime,
       },
-      (err, res) => {
+      (err: any, res: any) => {
         if (err) {
           throw new Error("获取微服务列表失败，请检测你的nacos！");
         }
@@ -136,7 +136,7 @@ class feign {
     }, this.refreshTime);
   }
 
-  async closeMircoServer({ ip, port }: InstanceCloseMircoServerType) {
+  private async closeMircoServer({ ip, port }: InstanceCloseMircoServerType) {
     this.MicroServerList = this.MicroServerList.filter((item) => {
       return item.ip != ip || item.port != port;
     });
