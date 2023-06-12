@@ -42,14 +42,14 @@ const proxy = async () => {
 ```
 
 ### 参数说明
-> #### proxymircoServer.ADONIS_NODE_.run函数支持参数({ url, params, data, method, timeout })  
+#### proxymircoServer.ADONIS_NODE_.run函数支持参数({ url, params, data, method, timeout })  
 >url:具体路径  
 >params:query参数  
 >data:payload参数  
 >method:请求方法 默认为get方法  
 >timeout:超时时间 默认为5000毫秒  
 
-> #### asyncGetFeign函数支持参数({ serverList, namespace, groupName, serviceName})
+#### asyncGetFeign函数支持参数({ serverList, namespace, groupName, serviceName})
 >serverList:nacos服务地址 - 为必填  
 >namespace:空间名称（网页路径：服务管理/服务列表） - 不为必填  
 >groupName:分组名称（网页路径：服务管理/服务列表） - 不为必填  
@@ -59,6 +59,11 @@ const proxy = async () => {
 
 ### 核心实现逻辑
 >本包核心是通过计算微服务权重去动态选择服务进而转发服务~  
+
+### 包关联信息
+>[npm链接](https://www.npmjs.com/package/nacos-node-feign)  
+>[github链接](https://github.com/HanWuJiJack/nacos-node-feign)  
+
 
 <!-- ts打包成js:npx tsc ./lib/index.ts -->
 
