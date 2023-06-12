@@ -34,5 +34,11 @@ const proxy = async () => {
 >--method:请求方法 默认为get方法  
 >--timeout:超时时间 默认为5000毫秒  
 
+<!-- ts打包成js:npx tsc ./lib/index.ts -->
+
+<!-- npx ts-node ./examples/index.ts -->
+
+<!-- 发布版本： git publish -->
+
 
 

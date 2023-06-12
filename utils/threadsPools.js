@@ -1,4 +1,5 @@
-// / 获取当前设备的 CPU 线程数目，作为 numberOfThreads 的默认值。
+// 获取当前设备的 CPU 线程数目，作为 numberOfThreads 的默认值。
+// 真正的多线程执行
 const { length: cpusLength } = require("os").cpus();
 const { Worker } = require("worker_threads");
 module.exports = class WorkerPool {

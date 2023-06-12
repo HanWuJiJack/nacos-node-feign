@@ -1,4 +1,4 @@
-const request = require("./utils/request");
+const request = require("./request");
 const { parentPort } = require("worker_threads");
 
 const toRequire = ({

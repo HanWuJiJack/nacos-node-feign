@@ -1,9 +1,11 @@
 const proxymircoServer = require("./proxymircoServer");
-const { asyncGetFeign } = require("../index");
+const asyncGetFeignDefault = require("../index");
 const request = require("../utils/request");
 const { resolve } = require("path");
-const threadsPools = require("../threadsPools");
-const TPools = new threadsPools(resolve(__dirname, "../seprateThread.js"));
+const threadsPools = require("../utils/threadsPools");
+const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
+const { asyncGetFeign } = asyncGetFeignDefault.default
+
 
 // 实际转发代码
 const proxy = async () => {
@@ -23,7 +25,7 @@ const init = async () => {
   const before = Date.now();
   console.log(before); // 1505722233092
   // 需要转发的代码
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 10000; i++) {
     await proxy();
   }
   console.log(Date.now() - before); // 81736ms
