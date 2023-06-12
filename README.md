@@ -1,5 +1,8 @@
 ## 使用文档
 
+如果你感觉本包对你起到一点点作用，请帮忙点个star Thanks♪(･ω･)ﾉ  
+
+
 ### 安装包
 ```
 npm i nacos-node-feign
