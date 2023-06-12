@@ -7,12 +7,17 @@
     "build": "tsc -p tsconfig.json"
   },
   "keywords": [
-    "nacos","feign","node"
+    "nacos",
+    "feign",
+    "node"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.4.0"
+    "axios": "^1.4.0",
+    "got": "^13.0.0",
+    "request": "^2.88.2",
+    "underscore": "^1.13.6"
   },
   "devDependencies": {
     "@types/node": "^20.2.5",

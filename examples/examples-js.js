@@ -2,10 +2,14 @@ const proxymircoServer = require("./proxymircoServer");
 const asyncGetFeignDefault = require("../index");
 const request = require("../utils/request");
 const { resolve } = require("path");
-const threadsPools = require("../utils/threadsPools");
-const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
-const { asyncGetFeign } = asyncGetFeignDefault.default
-
+// const threadsPools = require("../utils/threadsPools");
+const threadsLong = require("../utils/threadsLong");
+// const TPools = new threadsPools(
+//   resolve(__dirname, "../utils/seprateThread.js"));
+const TPools = new threadsLong(
+  resolve(__dirname, "../utils/threadGetMicroServerList2.js")
+);
+const { asyncGetFeign } = asyncGetFeignDefault.default;
 
 // 实际转发代码
 const proxy = async () => {
@@ -30,26 +34,33 @@ const init = async () => {
   }
   console.log(Date.now() - before); // 81736ms
 };
-init();
+// init();
 
 // -----------------------------------以下是测试多线程与单线程请求差距----------------------------------------
 const testThread = () => {
   const before = Date.now();
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < 7; i++) {
     TPools.run(
       {
-        baseURL: "http://127.0.0.1:4003",
+        baseURL: "http://127.0.0.1:4004",
         url: "/api/posts",
+        timeout: 10000,
+        sum: 300,
       },
       (err, res) => {
-        console.log(Date.now() - before);
-        // console.log(res);
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(Date.now() - before);
+          console.log(res);
+        }
+        // console.log(err);
       }
     );
   }
 };
 
-// testThread();
+testThread();
 const testAsync = async () => {
   const before = Date.now();
   for (let i = 0; i < 10000; i++) {
