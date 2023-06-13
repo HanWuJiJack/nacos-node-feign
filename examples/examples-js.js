@@ -34,9 +34,9 @@ const init = async () => {
   const before = Date.now();
   console.log(before);
   // 需要转发的代码
-  for (let i = 0; i < 10; i++) {
-    await proxy();
-  }
+  // for (let i = 0; i < 10; i++) {
+  //   await proxy();
+  // }
   console.log(Date.now() - before); // 81736ms
 };
 init();
