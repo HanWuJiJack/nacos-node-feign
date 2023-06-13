@@ -1,13 +1,18 @@
 const request = require("request");
 const _ = require("underscore");
-
+// 参考
+// https://www.microanswer.cn/blog/64
 module.exports = ({
   isJson = true,
   baseURL,
   url,
   method = "get",
-  params = {},
-  data = {},
+  params = {
+    v: 1
+  },
+  data = {
+    v: 1
+  },
   timeout
 }) => {
   const options = {
@@ -15,15 +20,22 @@ module.exports = ({
     baseUrl: baseURL,
     method: method.toLocaleUpperCase(),
     timeout,
-    qs: params,
+    qs: params
   };
   if (options.method !== "GET") {
-    if (isJson) _.extend(options, {
-      json: true,
-      body: JSON.stringify(data)
-    });
-    else _.extend(options, {
-      form: data
+    if (isJson) {
+      _.extend(options, {
+        json: true,
+        body: data
+      });
+    } else {
+      _.extend(options, {
+        form: data
+      });
+    }
+  } else {
+    _.extend(options, {
+      json: true
     });
   }
   return new Promise((resolve, reject) => {
