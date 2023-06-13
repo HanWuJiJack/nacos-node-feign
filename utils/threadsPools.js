@@ -73,12 +73,6 @@ module.exports = class WorkerPool {
 
     const taskObj = {
       data,
-      // cb: (error, result) => {
-      //   // 虽然 Workers 需要使用 Listener 和 Callback，但这不能阻止我们使用 Promise，对吧？
-      //   // 不，你不能 util.promisify(taskObj) 。人不能，至少不应该。
-      //   if (error) reject(error);
-      //   return resolve(result);
-      // },
       cb: callBack,
     };
 
