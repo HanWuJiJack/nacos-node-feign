@@ -5,7 +5,7 @@ const request = require("../utils/request");
 const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
 
-
+// http://127.0.0.1:8848/nacos/v1/auth/users/?username=nacos&password=nacos&pageNo=1&pageSize=1
 class feign {
   private serverList;
   private namespaceId;
@@ -20,7 +20,11 @@ class feign {
   private runData: any;
   private refreshTime;
   private threadsinitsum;
-  constructor({ serverList, namespace, groupName, serviceName }: InstanceFeignType) {
+  private username;
+  private password;
+  private accessToken: string;
+
+  constructor({ serverList, namespace, groupName, serviceName, username, password }: InstanceFeignType) {
     this.groupName = groupName;
     this.serverList = serverList;
     this.namespaceId = namespace;
@@ -31,6 +35,10 @@ class feign {
     this.runData = null;
     this.refreshTime = 15000;
     this.threadsinitsum = 0; //重试次数
+
+    this.accessToken = ""
+    this.username = username
+    this.password = password
     this.threadsinit();
     setInterval(() => {
       this.threadsinit();
@@ -73,9 +81,22 @@ class feign {
     this.acceptRequireSum += 1;
     return { ...this.MicroServerList[maxIndex] };
   }
-
-  private threadsinit() {
-    // console.log("nacos-node-feign: 微服务列表获取中~")
+  private async getToken() {
+    const { accessToken } = await request({
+      baseURL: this.serverList,
+      url: "/nacos/v1/auth/login",
+      method: "post",
+      params: {
+        username: this.username,
+        password: this.password,
+      },
+    })
+    this.accessToken = accessToken
+  }
+  private async threadsinit() {
+    if (this.username && this.password) {
+      await this.getToken()
+    }
     TPools.run(
       {
         baseURL: this.serverList,
@@ -85,12 +106,16 @@ class feign {
           namespaceId: this.namespaceId,
           groupName: this.groupName,
           healthyOnly: true,
+          "accessToken": this.accessToken
         },
         refreshTime: this.refreshTime,
       },
       (err: any, res: any) => {
         if (err) {
           throw new Error("获取微服务列表失败，请检测你的nacos！");
+        }
+        if (res.status === 403) {
+          throw new Error("nacos-node-feign: 请配置nacos用户名密码");
         }
         if (this.MicroServerList.length !== res.hosts.length) {
           this.MicroServerList = res.hosts || [];
@@ -110,7 +135,6 @@ class feign {
           }
           setTimeout(() => {
             this.threadsinitsum += 1
-            console.log("this.threadsinitsum", this.threadsinitsum)
             this.threadsinit()
           }, 1000)
         }
@@ -137,7 +161,6 @@ class feign {
         timeout,
       }).then(
         (res: any) => {
-          console.log(res)
           resolve(res);
         },
         (err: any) => {
@@ -154,13 +177,15 @@ class feign {
   }
 }
 
-export const asyncGetFeign: interfaceAsyncGetFeign = ({ serverList, namespace, groupName, serviceName }: InstanceFeignType) => {
+export const asyncGetFeign: interfaceAsyncGetFeign = ({ serverList, namespace, groupName, serviceName, username, password }: InstanceFeignType) => {
   return new Promise((resolve, reject) => {
     const feign_ = new feign({
       serverList,
       namespace,
       groupName,
       serviceName,
+      username,
+      password
     });
     // feign_.init().then(() => {
     //   resolve(feign_);

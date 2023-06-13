@@ -30,13 +30,15 @@ const init = async () => {
   proxymircoServer.ADONIS_NODE_ = await asyncGetFeign({
     serverList: "http://127.0.0.1:8848",
     serviceName: "ADONIS_NODE_",
+    // username: "nacos",
+    // password: "hsueh"
   });
   const before = Date.now();
   console.log(before);
   // 需要转发的代码
-  // for (let i = 0; i < 10; i++) {
-  //   await proxy();
-  // }
+  for (let i = 0; i < 10; i++) {
+    await proxy();
+  }
   console.log(Date.now() - before); // 81736ms
 };
 init();
@@ -56,7 +58,7 @@ const testThread = () => {
           console.log("err", err);
         } else {
           console.log(Date.now() - before);
-          console.log("res",res);
+          console.log("res", res);
         }
         // console.log(err);
       }
