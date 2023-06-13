@@ -159,7 +159,6 @@ class feign {
           resolve(res);
         },
         (err: any) => {
-          // console.log("err1", err);
           if (err.code && err.code === 50002) {
             this.closeMircoServer(curMircoServer).then((res) => {
               resolve(res);
