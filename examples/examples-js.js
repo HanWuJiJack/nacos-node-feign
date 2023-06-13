@@ -9,7 +9,7 @@ const threadsLong = require("../utils/threadsLong");
 // const TPools = new threadsPools(
 //   resolve(__dirname, "../utils/seprateThread.js"));
 const TPools = new threadsLong(
-  resolve(__dirname, "../utils/threadGetMicroServerList2.js")
+  resolve(__dirname, "../utils/seprateThread.js")
 );
 const {
   asyncGetFeign
@@ -19,6 +19,7 @@ const {
 const proxy = async () => {
   const data = await proxymircoServer.ADONIS_NODE_.run({
     url: "/api/posts",
+    // method:"POST"
     // timeout: 5000,
   });
   console.log("data", data);
@@ -31,14 +32,14 @@ const init = async () => {
     serviceName: "ADONIS_NODE_",
   });
   const before = Date.now();
-  console.log(before); // 1505722233092
+  console.log(before);
   // 需要转发的代码
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < 10; i++) {
     await proxy();
   }
   console.log(Date.now() - before); // 81736ms
 };
-// init();
+init();
 
 // -----------------------------------以下是测试多线程与单线程请求差距----------------------------------------
 const testThread = () => {
@@ -63,7 +64,7 @@ const testThread = () => {
   }
 };
 
-testThread();
+// testThread();
 const testAsync = async () => {
   const before = Date.now();
   for (let i = 0; i < 10000; i++) {

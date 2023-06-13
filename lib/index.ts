@@ -1,8 +1,10 @@
 import { InstanceCloseMircoServerType, InstanceFeignType, InstanceServerType, interfaceAsyncGetFeign } from "./interface";
 const { resolve } = require("path");
 const request = require("../utils/request");
+// 
 const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
+
 
 class feign {
   private serverList;
@@ -116,7 +118,6 @@ class feign {
         if (err) {
           throw new Error("获取微服务列表失败，请检测你的nacos！");
         }
-        // console.log("多线程获取res.hosts8888列表=>", res.hosts.length);
         if (this.MicroServerList.length !== res.hosts.length) {
           this.MicroServerList = res.hosts || [];
           if (this.MicroServerList.length === 0) {
@@ -145,7 +146,6 @@ class feign {
   run({ url, params, data, method, timeout }: InstanceServerType) {
     this.runData = { url, params, data, method, timeout };
     const curMircoServer = this.LoadBalance();
-    // console.log("curMircoServer", curMircoServer);
     return new Promise((resolve) => {
       request({
         baseURL: `http://${curMircoServer.ip}:${curMircoServer.port}`,
@@ -156,11 +156,12 @@ class feign {
         timeout,
       }).then(
         (res: any) => {
+          console.log(res)
           resolve(res);
         },
         (err: any) => {
           if (err.code && err.code === 50002) {
-            this.closeMircoServer(curMircoServer).then((res) => {
+            this.closeMircoServer(curMircoServer).then((res: any) => {
               resolve(res);
             });
           } else {

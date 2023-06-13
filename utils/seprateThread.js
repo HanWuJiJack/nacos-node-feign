@@ -1,5 +1,7 @@
 const request = require("./request");
-const { parentPort } = require("worker_threads");
+const {
+  parentPort
+} = require("worker_threads");
 
 parentPort.on(
   "message",
@@ -20,7 +22,6 @@ parentPort.on(
       timeout,
     }).then(
       (res) => {
-        // console.log("parentPortres=>", res);
         parentPort.postMessage(res);
       },
       (err) => {
