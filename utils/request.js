@@ -7,12 +7,9 @@ module.exports = ({
   baseURL,
   url,
   method = "get",
-  params = {
-    v: 1
-  },
-  data = {
-    v: 1
-  },
+  params = {},
+  data = {},
+  headers = {},
   timeout
 }) => {
   const options = {
@@ -20,6 +17,7 @@ module.exports = ({
     baseUrl: baseURL,
     method: method.toLocaleUpperCase(),
     timeout,
+    headers,
     qs: params
   };
   if (options.method !== "GET") {

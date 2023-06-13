@@ -3,6 +3,8 @@ export interface InstanceFeignType {
   namespace?: string;
   groupName?: string;
   serviceName: string;
+  username?: string;
+  password?: string;
 }
 
 export interface InstanceServerType {

@@ -5,7 +5,7 @@ const request = require("../utils/request");
 const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
 
-
+// http://127.0.0.1:8848/nacos/v1/auth/users/?username=nacos&password=nacos&pageNo=1&pageSize=1
 class feign {
   private serverList;
   private namespaceId;
@@ -19,7 +19,12 @@ class feign {
   // 参数缓存
   private runData: any;
   private refreshTime;
-  constructor({ serverList, namespace, groupName, serviceName }: InstanceFeignType) {
+  private threadsinitsum;
+  private username;
+  private password;
+  private accessToken: string;
+
+  constructor({ serverList, namespace, groupName, serviceName, username, password }: InstanceFeignType) {
     this.groupName = groupName;
     this.serverList = serverList;
     this.namespaceId = namespace;
@@ -29,6 +34,15 @@ class feign {
     this.weightSum = 0;
     this.runData = null;
     this.refreshTime = 15000;
+    this.threadsinitsum = 0; //重试次数
+
+    this.accessToken = ""
+    this.username = username
+    this.password = password
+    this.threadsinit();
+    setInterval(() => {
+      this.threadsinit();
+    }, this.refreshTime)
   }
   // 负载均衡算法
   private LoadBalance() {
@@ -67,41 +81,22 @@ class feign {
     this.acceptRequireSum += 1;
     return { ...this.MicroServerList[maxIndex] };
   }
-
-  async init() {
-    try {
-      const data = await request({
-        baseURL: this.serverList,
-        url: "/nacos/v1/ns/instance/list",
-        params: {
-          serviceName: this.serviceName,
-          namespaceId: this.namespaceId,
-          groupName: this.groupName,
-          healthyOnly: true,
-        },
-      });
-      if (data.hosts.length === 0) {
-        throw new Error("请先注册微服务到nacos");
-      }
-      if (data.hosts.length > this.MicroServerList.length) {
-        this.MicroServerList = data.hosts || [];
-        this.weightSum = this.MicroServerList.map((item) => item.weight).reduce(
-          (prev, curr) => {
-            return prev + curr;
-          }
-        );
-      }
-    } catch (error) {
-      // console.error("获取微服务列表失败，请检测你的nacos！", error);
-      throw new Error("获取微服务列表失败，请检测你的nacos！");
-    }
-
-    // 通过开启一个线程去独立 每个15秒刷新一次配置
-    setTimeout(() => {
-      this.threadsinit();
-    }, this.refreshTime);
+  private async getToken() {
+    const { accessToken } = await request({
+      baseURL: this.serverList,
+      url: "/nacos/v1/auth/login",
+      method: "post",
+      params: {
+        username: this.username,
+        password: this.password,
+      },
+    })
+    this.accessToken = accessToken
   }
-  private threadsinit() {
+  private async threadsinit() {
+    if (this.username && this.password) {
+      await this.getToken()
+    }
     TPools.run(
       {
         baseURL: this.serverList,
@@ -111,6 +106,7 @@ class feign {
           namespaceId: this.namespaceId,
           groupName: this.groupName,
           healthyOnly: true,
+          "accessToken": this.accessToken
         },
         refreshTime: this.refreshTime,
       },
@@ -118,23 +114,32 @@ class feign {
         if (err) {
           throw new Error("获取微服务列表失败，请检测你的nacos！");
         }
+        if (res.status === 403) {
+          throw new Error("nacos-node-feign: 请配置nacos用户名密码");
+        }
         if (this.MicroServerList.length !== res.hosts.length) {
           this.MicroServerList = res.hosts || [];
           if (this.MicroServerList.length === 0) {
-            throw new Error("请先注册微服务到nacos");
+            throw new Error("微服务已经全部宕机！");
           }
+          this.threadsinitsum = 0
+          console.log("nacos-node-feign: 微服务列表获取成功！")
           this.weightSum = this.MicroServerList.map(
             (item) => item.weight
           ).reduce((prev, curr) => {
             return prev + curr;
           });
+        } else if (this.MicroServerList.length === 0) {
+          if (this.threadsinitsum > 2) {
+            throw new Error("微服务已经全部宕机！");
+          }
+          setTimeout(() => {
+            this.threadsinitsum += 1
+            this.threadsinit()
+          }, 1000)
         }
       }
     );
-    // 通过开启一个线程去独立 每个15秒刷新一次配置
-    setTimeout(() => {
-      this.threadsinit();
-    }, this.refreshTime);
   }
 
   private async closeMircoServer({ ip, port }: InstanceCloseMircoServerType) {
@@ -156,7 +161,6 @@ class feign {
         timeout,
       }).then(
         (res: any) => {
-          console.log(res)
           resolve(res);
         },
         (err: any) => {
@@ -173,16 +177,19 @@ class feign {
   }
 }
 
-export const asyncGetFeign: interfaceAsyncGetFeign = ({ serverList, namespace, groupName, serviceName }: InstanceFeignType) => {
+export const asyncGetFeign: interfaceAsyncGetFeign = ({ serverList, namespace, groupName, serviceName, username, password }: InstanceFeignType) => {
   return new Promise((resolve, reject) => {
     const feign_ = new feign({
       serverList,
       namespace,
       groupName,
       serviceName,
+      username,
+      password
     });
-    feign_.init().then(() => {
-      resolve(feign_);
-    });
+    // feign_.init().then(() => {
+    //   resolve(feign_);
+    // });
+    resolve(feign_);
   });
 };

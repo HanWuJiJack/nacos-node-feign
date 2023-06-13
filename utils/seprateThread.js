@@ -12,6 +12,7 @@ parentPort.on(
     params,
     data,
     timeout,
+    headers = {}
   }) => {
     request({
       baseURL,
@@ -20,6 +21,7 @@ parentPort.on(
       params,
       data,
       timeout,
+      headers
     }).then(
       (res) => {
         parentPort.postMessage(res);
