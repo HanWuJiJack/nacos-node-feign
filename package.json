@@ -11,7 +11,7 @@
     "feign",
     "node"
   ],
-  "author": "",
+  "author": "hsueh",
   "license": "MIT",
   "dependencies": {
     "request": "^2.88.2",
