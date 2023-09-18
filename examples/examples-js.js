@@ -1,5 +1,5 @@
 const proxymircoServer = require("./proxymircoServer");
-const asyncGetFeignDefault = require("../index");
+const asyncGetFeignDefault = require("../lib/index");
 const request = require("../utils/request");
 const {
   resolve

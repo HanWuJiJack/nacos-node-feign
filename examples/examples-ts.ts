@@ -1,4 +1,4 @@
-import asyncGetFeignDefault from "../index";
+import asyncGetFeignDefault from "../lib/index";
 const { asyncGetFeign } = asyncGetFeignDefault
 
 
