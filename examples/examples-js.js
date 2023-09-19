@@ -1,5 +1,7 @@
 const proxymircoServer = require("./proxymircoServer");
-const asyncGetFeignDefault = require("../index");
+const {
+  asyncGetFeign
+} = require("../dist/index.js");
 const request = require("../utils/request");
 const {
   resolve
@@ -11,9 +13,6 @@ const threadsLong = require("../utils/threadsLong");
 const TPools = new threadsLong(
   resolve(__dirname, "../utils/seprateThread.js")
 );
-const {
-  asyncGetFeign
-} = asyncGetFeignDefault.default;
 
 // 实际转发代码
 const proxy = async () => {
@@ -30,15 +29,15 @@ const init = async () => {
   proxymircoServer.ADONIS_NODE_ = await asyncGetFeign({
     serverList: "http://127.0.0.1:8848",
     serviceName: "ADONIS_NODE_",
-    // username: "nacos",
-    // password: "hsueh"
+    username: "nacos",
+    password: "hsueh"
   });
   const before = Date.now();
   console.log(before);
   // 需要转发的代码
-  for (let i = 0; i < 10; i++) {
-    await proxy();
-  }
+  setTimeout(() => {
+    proxy();
+  }, 1000)
   console.log(Date.now() - before); // 81736ms
 };
 init();
