@@ -8,14 +8,12 @@
 
 ### 引入包-ts
 >```
->import asyncGetFeignDefault from "nacos-node-feign";
->const { asyncGetFeign } = asyncGetFeignDefault
+>import { asyncGetFeign } from "nacos-node-feign";
 >```
 
 ### 引入包-js
 >```
->const asyncGetFeignDefault = require("nacos-node-feign");
->const { asyncGetFeign } = asyncGetFeignDefault.default
+>const { asyncGetFeign } = require("nacos-node-feign");
 >```
 
 ### 将代理注册到中心
@@ -29,6 +27,14 @@
 >};
 >init();
 >```
+
+#### asyncGetFeign函数支持参数({ serverList, namespace, groupName, serviceName,username,password})
+>serverList:nacos服务地址 - 为必填  
+>namespace:空间名称（网页路径：服务管理/服务列表） - 不为必填  
+>groupName:分组名称（网页路径：服务管理/服务列表） - 不为必填  
+>serviceName:服务名（网页路径：服务管理/服务列表）- 为必填  
+>username: nacos用户名 - 取决你是否在nacos配置权限认证  
+>password: nacos密码 - 取决你是否在nacos配置权限认证  
 
 ### 转发具体接口
 >```
@@ -46,16 +52,6 @@
 >data:payload参数  
 >method:请求方法 默认为get方法  
 >timeout:超时时间 默认为5000毫秒  
-
-#### asyncGetFeign函数支持参数({ serverList, namespace, groupName, serviceName,username,password})
->serverList:nacos服务地址 - 为必填  
->namespace:空间名称（网页路径：服务管理/服务列表） - 不为必填  
->groupName:分组名称（网页路径：服务管理/服务列表） - 不为必填  
->serviceName:服务名（网页路径：服务管理/服务列表）- 为必填  
->username: nacos用户名 - 取决你是否在nacos配置权限认证  
->password: nacos密码 - 取决你是否在nacos配置权限认证  
-
-
 
 ### 核心实现逻辑
 >本包核心是通过计算微服务权重去动态选择服务进而转发服务~  

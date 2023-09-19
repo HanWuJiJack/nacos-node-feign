@@ -1,10 +1,14 @@
 {
   "name": "nacos-node-feign",
-  "version": "1.1.40",
+  "version": "1.1.42",
   "description": "本包核心是通过计算微服务权重去动态选择服务进而转发服务！",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "prepublish": "npm run build",
+    "dev": "rm -fr ./dist && tsc -p tsconfig.dev.json",
+    "build": "rm -fr ./dist && tsc -p tsconfig.json",
+    "test": "rm -fr ./test-dist && tsc -p tsconfig.test.json && mocha ./test-dist/*"
   },
   "keywords": [
     "nacos",
@@ -18,9 +22,13 @@
     "underscore": "^1.13.6"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.6",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^20.3.0",
+    "chai": "^4.3.8",
+    "mocha": "^10.2.0",
     "tslint": "^5.20.1",
     "tslint-config-airbnb": "^5.11.2",
-    "typescript": "^5.1.3"
+    "typescript": "^5.2.2"
   }
 }

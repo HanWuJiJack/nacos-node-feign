@@ -1,9 +1,35 @@
-import { InstanceCloseMircoServerType, InstanceFeignType, InstanceServerType, interfaceAsyncGetFeign } from "./interface";
 const { resolve } = require("path");
 const request = require("../utils/request");
 // 
 const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
+
+export interface InstanceFeignType {
+  serverList: string;
+  namespace?: string;
+  groupName?: string;
+  serviceName: string;
+  username?: string;
+  password?: string;
+}
+
+export interface InstanceServerType {
+  url: string,
+  params?: any,
+  data?: any,
+  method?: string,
+  timeout?: number
+}
+
+export interface InstanceCloseMircoServerType {
+  ip: string;
+  port: number
+}
+
+export interface interfaceAsyncGetFeign {
+  (p: InstanceFeignType): any;
+}
+
 
 // http://127.0.0.1:8848/nacos/v1/auth/users/?username=nacos&password=nacos&pageNo=1&pageSize=1
 class feign {

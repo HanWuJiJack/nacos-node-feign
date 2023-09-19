@@ -1,6 +1,4 @@
-import asyncGetFeignDefault from "../index";
-const { asyncGetFeign } = asyncGetFeignDefault
-
+import { asyncGetFeign } from "../dist/index";
 
 const proxymircoServer: {
   ADONIS_NODE_: any
@@ -19,16 +17,18 @@ const proxy = async () => {
 
 const init = async () => {
   //将转发注册到中心
-  proxymircoServer.ADONIS_NODE_= await asyncGetFeign({
+  proxymircoServer.ADONIS_NODE_ = await asyncGetFeign({
     serverList: "http://127.0.0.1:8848",
     serviceName: "ADONIS_NODE_",
+    username: "nacos",
+    password: "hsueh"
   });
-const before = Date.now();
-console.log(before); // 1505722233092
-// 需要转发的代码
-for (let i = 0; i < 10; i++) {
-  await proxy();
-}
-console.log(Date.now() - before); // 81736ms
+  const before = Date.now();
+  console.log(before); // 1505722233092
+  // 需要转发的代码
+  setTimeout(() => {
+    proxy();
+  }, 1000);
+  console.log(Date.now() - before); // 81736ms
 };
 init();
