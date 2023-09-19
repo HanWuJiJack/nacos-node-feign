@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.asyncGetFeign = void 0;
 const { resolve } = require("path");
 const request = require("../utils/request");
-// 
 const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
 // http://127.0.0.1:8848/nacos/v1/auth/users/?username=nacos&password=nacos&pageNo=1&pageSize=1
@@ -38,6 +37,9 @@ class feign {
     }
     // 负载均衡算法
     LoadBalance() {
+        if (this.MicroServerList.length === 0) {
+            throw new Error("未获取微服务列表！");
+        }
         let maxIndex = 0;
         let maxNum = 0;
         for (const index in this.MicroServerList) {

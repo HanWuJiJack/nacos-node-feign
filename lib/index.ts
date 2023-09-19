@@ -1,9 +1,7 @@
 const { resolve } = require("path");
 const request = require("../utils/request");
-// 
 const threadsPools = require("../utils/threadsPools");
 const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
-
 export interface InstanceFeignType {
   serverList: string;
   namespace?: string;
@@ -72,6 +70,9 @@ class feign {
   }
   // 负载均衡算法
   private LoadBalance() {
+    if (this.MicroServerList.length === 0) {
+      throw new Error("未获取微服务列表！")
+    }
     let maxIndex = 0;
     let maxNum = 0;
     for (const index in this.MicroServerList) {
