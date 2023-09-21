@@ -1,5 +1,12 @@
 ## 使用文档
+
+### 核心思想
+>1、核心功能：通过从nacos拿到微服务注册信息，通过权重比例进行接口代理分发。
+>2、通过多线程，每20分钟从nacos获取一次微服务列表信息
+>3、建议先将服务注册到nacos，再调用本包的asyncGetFeign方法
+>4、算法：通过当前微服务权重比例和当前微服务已经服务次数，算出当前微服务对应全部服务次数。取微服务对应全部服务次数最小的微服务进行代理！
 >如果你感觉本包对你起到一点点作用，请帮忙点个star Thanks♪(･ω･)ﾉ  
+
 
 ### 安装包
 >```
@@ -35,6 +42,15 @@
 >serviceName:服务名（网页路径：服务管理/服务列表）- 为必填  
 >username: nacos用户名 - 取决你是否在nacos配置权限认证  
 >password: nacos密码 - 取决你是否在nacos配置权限认证  
+
+> ##### redis配置参数
+
+>rhost:redis-host - 为必填  
+>rport:redis-port - 为必填  
+>rusername:redis-username - 不为必填  
+>rpassword:redis-password - 不为必填 
+>rdb: redis-db - 不为必填 
+
 
 ### 转发具体接口
 >```

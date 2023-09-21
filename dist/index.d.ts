@@ -1,23 +1,18 @@
-export interface InstanceFeignType {
+interface InstanceFeignType {
     serverList: string;
     namespace?: string;
     groupName?: string;
     serviceName: string;
     username?: string;
     password?: string;
+    rhost?: string;
+    rport?: number;
+    rusername?: string;
+    rpassword?: string;
+    rdb?: number;
 }
-export interface InstanceServerType {
-    url: string;
-    params?: any;
-    data?: any;
-    method?: string;
-    timeout?: number;
-}
-export interface InstanceCloseMircoServerType {
-    ip: string;
-    port: number;
-}
-export interface interfaceAsyncGetFeign {
+interface interfaceAsyncGetFeign {
     (p: InstanceFeignType): any;
 }
 export declare const asyncGetFeign: interfaceAsyncGetFeign;
+export {};

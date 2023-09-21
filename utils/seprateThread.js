@@ -24,6 +24,7 @@ parentPort.on(
       headers
     }).then(
       (res) => {
+        // console.log("parentPorterr=>", res);
         parentPort.postMessage(res);
       },
       (err) => {

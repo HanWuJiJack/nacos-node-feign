@@ -35,9 +35,11 @@ const init = async () => {
   const before = Date.now();
   console.log(before);
   // 需要转发的代码
-  setTimeout(() => {
-    proxy();
-  }, 1000)
+  // setTimeout(() => {
+  //   proxy();
+  // }, 5000)
+
+  setInterval(()=>{proxy();},3000)
   console.log(Date.now() - before); // 81736ms
 };
 init();

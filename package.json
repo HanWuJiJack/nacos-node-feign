@@ -1,6 +1,6 @@
 {
   "name": "nacos-node-feign",
-  "version": "1.1.44",
+  "version": "1.2.0",
   "description": "本包核心是通过计算微服务权重去动态选择服务进而转发服务！",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,6 +25,7 @@
     "@types/node": "^20.3.0",
     "chai": "^4.3.8",
     "mocha": "^10.2.0",
+    "redis": "^4.6.9",
     "tslint": "^5.20.1",
     "tslint-config-airbnb": "^5.11.2",
     "typescript": "^5.2.2"

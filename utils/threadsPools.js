@@ -1,7 +1,14 @@
 // 获取当前设备的 CPU 线程数目，作为 numberOfThreads 的默认值。
 // 真正的多线程执行
-const { length: cpusLength } = require("os").cpus();
-const { Worker } = require("worker_threads");
+const {
+  length: cpusLength
+} = require("os").cpus();
+const {
+  resolve
+} = require("path");
+const {
+  Worker
+} = require("worker_threads");
 module.exports = class WorkerPool {
   constructor(workerPath, numberOfThreads = cpusLength) {
     if (numberOfThreads < 1) {
@@ -52,7 +59,7 @@ module.exports = class WorkerPool {
     this._activeWorkersById[workerId] = true;
     // 设置两个回调，用于 Worker 的监听器
     const messageCallback = (result) => {
-      // console.log("messageCallback", result);
+      console.log("messageCallback", result);
       taskObj.cb(null, result);
       doAfterTaskIsFinished();
     };
@@ -85,6 +92,21 @@ module.exports = class WorkerPool {
     // 有一个空闲的 Worker，用它执行任务
     this.runWorker(availableWorkerId, taskObj);
   }
+
+  async_run(data) {
+    return new Promise((resolve, reject) => {
+      console.log(555555555)
+      this.run(data, (err, res) => {
+        console.log(6666, err, res)
+        if (err) {
+          // console.log(6666, err)
+          throw new Error("获取微服务列表失败，请检测你的nacos！");
+        }
+        resolve(res)
+      })
+    })
+  }
+
   destroy(force = false) {
     for (let i = 0; i < this.numberOfThreads; i++) {
       if (this._activeWorkersById[i] && !force) {
