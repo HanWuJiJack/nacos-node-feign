@@ -1,5 +1,4 @@
-node_modules/
-.npmignore
-READ.md
-testdist/
+dist
+node_modules
 package-lock.json
+release

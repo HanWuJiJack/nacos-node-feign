@@ -1,8 +1,8 @@
 const { resolve } = require("path");
-const request = require("../utils/request");
-const threadsPools = require("../utils/asyncthreadsPools");
+const request = require("./utils/request");
+const threadsPools = require("./utils/asyncthreadsPools");
 import { redisUtils } from "./utils/redis"
-const TPools = new threadsPools(resolve(__dirname, "../utils/seprateThread.js"));
+const TPools = new threadsPools(resolve(__dirname, "./utils/seprateThread.js"));
 interface InstanceFeignType {
   serverList: string;
   namespace?: string;
