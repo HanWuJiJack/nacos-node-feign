@@ -1,3 +1,20 @@
+# 项目介绍
+
+面向微服务架构的智能代理中间件，基于Nacos实现动态服务发现，通过权重轮询算法实现智能负载均衡。
+
+## 技术亮点
+
+1. **动态服务发现** - 与Nacos深度集成，实时感知微服务实例状态
+2. **智能负载均衡** - 基于权重+服务次数的双维度调度算法
+3. **多线程更新机制** - 独立线程池定时同步服务列表（默认20分钟/次）
+4. **Redis集成** - 支持通过Redis持久化服务元数据
+
+## 适用场景
+
+- 需要动态路由的微服务架构
+- 基于权重的灰度发布场景
+- 多环境服务调度场景
+
 ## 使用文档
 
 ### 核心思想
@@ -74,7 +91,7 @@
 
 ### 包关联信息
 >[npm链接](https://www.npmjs.com/package/nacos-node-feign)  
->[github链接](https://github.com/HanWuJiJack/nacos-node-feign)  
+>[github链接](https://github.com/HanWuJiJack/nacos-node-feign)
 
 
 
